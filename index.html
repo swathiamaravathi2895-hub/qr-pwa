@@ -40,12 +40,12 @@
   <div id="status">📷 Initializing camera...</div>
 
   <script>
-    // Check if we came from login and need to redirect
-    if (window.opener && window.opener !== window && window.name === "loginRedirect") {
-      const targetUrl = sessionStorage.getItem("originalQRUrl");
-      if (targetUrl) {
-        console.log("✅ Login complete, redirecting parent window...");
-        window.opener.location.href = targetUrl;
+    // ✅ Return from login tab logic
+    if (window.opener && window.name === "loginRedirect") {
+      const returnUrl = sessionStorage.getItem("originalQRUrl");
+      if (returnUrl) {
+        console.log("🔁 Redirecting opener tab to:", returnUrl);
+        window.opener.location.href = returnUrl;
         window.close();
       }
     }
@@ -60,15 +60,16 @@
 
         sessionStorage.setItem("originalQRUrl", decodedText);
 
-        // Open login in new tab with a window name
+        // ✅ Open login portal in new tab with a name
         const loginWindow = window.open("https://portal.mycompany.com", "loginRedirect");
-        if (!loginWindow) {
-          alert("Popup blocked! Please allow popups for this site.");
+
+        if (!loginWindow || loginWindow.closed || typeof loginWindow.closed == 'undefined') {
+          alert("Popup blocked. Please allow popups for this site.");
         }
       }
 
       function onScanFailure(error) {
-        // Silent error
+        // Silent fail
       }
 
       const scanner = new Html5QrcodeScanner("reader", {
@@ -78,7 +79,6 @@
         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
       });
 
-      window.scanner = scanner;
       scanner.render(onScanSuccess, onScanFailure);
     }
 
