@@ -1,662 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Scanner PWA</title>
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#2563eb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="QR Scanner">
-    
-    <!-- Manifest -->
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUVIgU2Nhbm5lciBQV0EiLCJzaG9ydF9uYW1lIjoiUVIgU2Nhbm5lciIsImRlc2NyaXB0aW9uIjoiUVIgQ29kZSBTY2FubmVyIGZvciBTZWN1cmUgQWNjZXNzIiwic3RhcnRfdXJsIjoiLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwib3JpZW50YXRpb24iOiJwb3J0cmFpdCIsInRoZW1lX2NvbG9yIjoiIzI1NjNlYiIsImJhY2tncm91bmRfY29sb3IiOiIjZmZmZmZmIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1USTRJaUJvWldsbmFIUTlJakV5T0NJZ2RtbGxkMEp2ZUQwaU1DQXdJREV5T0NBeE1qZ2lJR1pwYkd3OUlpTXlOVFl6WldJaUlIaHRiRzV6UFNKb2RIUndPaTh2ZDNkM0xuY3pMbTl5Wnk4eU1EQXdMM04yWnlJK1BIQmhkR2dnWkQwaWJUUXdOalF0TkRBMmJEUXdOelF0TkRBM0xXUXdMV0V5TXpRZ01qTTBJREV4TWpzeUxUa3lNVE16TFRneU5TMHhOemRvTkRjM2JDMHhOMlk0YXpGd01pQXhJRGxvTkRjM2JEa3dMVGszYmprd1pERXlOeTE0Tm1OcGRRcDROall0Tm1WaE9EZ3RNalE1TFdac2JEbDBaVE14TFdkb01UZGxNV1F5Tmpnek9UTTZaRFJuTmpjdE0yRmxPRGN0TkdZMU1tTmxOV1JoT1RCaUlDOCtQQzl6ZG1jK0lpd2ljMmw2WlhNaU9pSXhNamhoTVRJNElpd2lkSGx3WlNJNkluQnVaeUo5WFgwPSJ9
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Redirector</title>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: white;
-            overflow-x: hidden;
-        }
+  <!-- Html5-qrcode -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-        .header {
-            padding: 20px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
 
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
 
-        .header p {
-            opacity: 0.8;
-            font-size: 14px;
-        }
+    p {
+      opacity: 0.85;
+      font-size: 14px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
 
-        .container {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+    #reader {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+    }
 
-        .scanner-container {
-            width: 100%;
-            max-width: 400px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      background: rgba(0,0,0,0.2);
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+    }
 
-        .camera-container {
-            position: relative;
-            width: 100%;
-            height: 300px;
-            background: #000;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            display: none;
-        }
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
 
-        .camera-container.active {
-            display: block;
-        }
-
-        #video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 220px;
-            height: 220px;
-            border: 3px solid #00f2fe;
-            border-radius: 15px;
-            box-shadow: 
-                0 0 0 4px rgba(0, 242, 254, 0.3),
-                0 0 0 9999px rgba(0, 0, 0, 0.6);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { border-color: #00f2fe; }
-            50% { border-color: #4facfe; }
-            100% { border-color: #00f2fe; }
-        }
-
-        .scan-button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
-        }
-
-        .scan-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
-        }
-
-        .scan-button:active {
-            transform: translateY(0);
-        }
-
-        .scan-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .status {
-            text-align: center;
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            min-height: 20px;
-        }
-
-        .status.success {
-            background: rgba(34, 197, 94, 0.2);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .status.error {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .status.info {
-            background: rgba(59, 130, 246, 0.2);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .instructions h3 {
-            margin-bottom: 8px;
-            color: #fbbf24;
-        }
-
-        .stop-button {
-            width: 100%;
-            padding: 12px;
-            background: rgba(239, 68, 68, 0.8);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .scanner-container {
-                padding: 15px;
-            }
-            
-            .camera-container {
-                height: 250px;
-            }
-        }
-
-        /* PWA Install Prompt */
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 15px;
-            border-radius: 12px;
-            display: none;
-            z-index: 1000;
-        }
-
-        .install-prompt.show {
-            display: block;
-        }
-
-        .install-button {
-            background: #4facfe;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            color: white;
-            margin-left: 10px;
-            cursor: pointer;
-        }
-    </style>
+      #reader {
+        padding: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🔍 QR Scanner</h1>
-        <p>Scan QR codes for secure access</p>
-    </div>
+  <h1>🔍 QR Scanner</h1>
+  <p>Scan QR codes for secure access</p>
 
-    <div class="container">
-        <div class="scanner-container">
-            <div class="instructions">
-                <h3>📋 How to use:</h3>
-                <p>1. Click "Start Scanning" below<br>
-                2. Point your camera at a QR code<br>
-                3. Hold steady and ensure QR code is in the blue frame<br>
-                4. Wait for automatic detection (may take a few seconds)<br>
-                5. Login when redirected<br>
-                6. Access your resource automatically</p>
-            </div>
+  <div id="reader"></div>
+  <div id="status">📷 Initializing camera...</div>
 
-            <div class="camera-container" id="cameraContainer">
-                <video id="video" playsinline></video>
-                <div class="overlay"></div>
-            </div>
+  <script>
+    function onScanSuccess(decodedText, decodedResult) {
+      document.getElementById("status").textContent = `✅ QR Detected: ${decodedText}`;
+      
+      setTimeout(() => {
+        // Store for potential post-login redirect (if needed)
+        sessionStorage.setItem('originalQRUrl', decodedText);
+        sessionStorage.setItem('qrScanTimestamp', Date.now().toString());
+        window.location.href = decodedText;
+      }, 1000);
+    }
 
-            <button id="scanButton" class="scan-button">
-                📷 Start Scanning
-            </button>
+    function onScanFailure(error) {
+      // Optional: can log errors silently
+    }
 
-            <button id="stopButton" class="stop-button" style="display: none;">
-                ⏹️ Stop Camera
-            </button>
+    const scanner = new Html5QrcodeScanner("reader", {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      rememberLastUsedCamera: true,
+      supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+    });
 
-            <button id="debugButton" class="stop-button" style="display: none; background: rgba(59, 130, 246, 0.8); margin-top: 5px;">
-                🐛 Toggle Debug View
-            </button>
-
-            <div id="status" class="status"></div>
-        </div>
-    </div>
-
-    <!-- Install Prompt -->
-    <div id="installPrompt" class="install-prompt">
-        <span>📱 Install this app for better experience!</span>
-        <button id="installButton" class="install-button">Install</button>
-        <button onclick="document.getElementById('installPrompt').classList.remove('show')" class="install-button" style="background: #666;">Later</button>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
-    <script>
-        class QRScanner {
-            constructor() {
-                this.video = document.getElementById('video');
-                this.canvas = document.createElement('canvas');
-                this.context = this.canvas.getContext('2d');
-                this.debugCanvas = document.createElement('canvas');
-                this.debugContext = this.debugCanvas.getContext('2d');
-                this.scanButton = document.getElementById('scanButton');
-                this.stopButton = document.getElementById('stopButton');
-                this.debugButton = document.getElementById('debugButton');
-                this.cameraContainer = document.getElementById('cameraContainer');
-                this.status = document.getElementById('status');
-                this.stream = null;
-                this.animationFrame = null;
-                this.isScanning = false;
-                this.debugMode = false;
-                this.lastScanTime = 0;
-                this.scanCooldown = 500; // Reduced to 0.5 seconds for faster detection
-                
-                this.initializeEventListeners();
-                this.initializePWA();
-            }
-
-            initializeEventListeners() {
-                this.scanButton.addEventListener('click', () => this.toggleScanning());
-                this.stopButton.addEventListener('click', () => this.stopScanning());
-                this.debugButton.addEventListener('click', () => this.toggleDebugMode());
-                
-                // Handle page visibility changes
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden && this.isScanning) {
-                        this.pauseScanning();
-                    } else if (!document.hidden && this.stream) {
-                        this.resumeScanning();
-                    }
-                });
-
-                // Handle page unload
-                window.addEventListener('beforeunload', () => {
-                    this.stopScanning();
-                });
-            }
-
-            initializePWA() {
-                // Register service worker
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register(this.createServiceWorker());
-                }
-
-                // Handle install prompt
-                window.addEventListener('beforeinstallprompt', (e) => {
-                    e.preventDefault();
-                    const installPrompt = document.getElementById('installPrompt');
-                    const installButton = document.getElementById('installButton');
-                    
-                    installPrompt.classList.add('show');
-                    installButton.addEventListener('click', () => {
-                        e.prompt();
-                        installPrompt.classList.remove('show');
-                    });
-                });
-            }
-
-            createServiceWorker() {
-                const swContent = `
-                    const CACHE_NAME = 'qr-scanner-v1';
-                    const urlsToCache = [
-                        '/',
-                        'https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js'
-                    ];
-
-                    self.addEventListener('install', (event) => {
-                        event.waitUntil(
-                            caches.open(CACHE_NAME)
-                                .then((cache) => cache.addAll(urlsToCache))
-                        );
-                    });
-
-                    self.addEventListener('fetch', (event) => {
-                        event.respondWith(
-                            caches.match(event.request)
-                                .then((response) => {
-                                    return response || fetch(event.request);
-                                }
-                            )
-                        );
-                    });
-                `;
-                
-                const blob = new Blob([swContent], { type: 'application/javascript' });
-                return URL.createObjectURL(blob);
-            }
-
-            async toggleScanning() {
-                if (this.isScanning) {
-                    this.stopScanning();
-                } else {
-                    await this.startScanning();
-                }
-            }
-
-            async startScanning() {
-                try {
-                    this.updateStatus('Requesting camera access...', 'info');
-                    this.scanButton.disabled = true;
-
-                    // Request camera with back camera preference
-                    const constraints = {
-                        video: {
-                            facingMode: { ideal: 'environment' }, // Back camera
-                            width: { min: 640, ideal: 1280, max: 1920 },
-                            height: { min: 480, ideal: 720, max: 1080 },
-                            aspectRatio: { ideal: 16/9 }
-                        }
-                    };
-
-                    this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    this.video.srcObject = this.stream;
-                    
-                    await new Promise((resolve) => {
-                        this.video.onloadedmetadata = resolve;
-                    });
-
-                    await this.video.play();
-                    
-                    this.cameraContainer.classList.add('active');
-                    this.scanButton.textContent = '🔍 Scanning...';
-                    this.scanButton.disabled = false;
-                    this.stopButton.style.display = 'block';
-                    this.debugButton.style.display = 'block';
-                    this.isScanning = true;
-
-                    this.updateStatus('Point camera at QR code', 'info');
-                    this.startScanLoop();
-
-                } catch (error) {
-                    console.error('Error accessing camera:', error);
-                    this.updateStatus('Camera access denied or not available', 'error');
-                    this.scanButton.disabled = false;
-                }
-            }
-
-            stopScanning() {
-                this.isScanning = false;
-                
-                if (this.animationFrame) {
-                    cancelAnimationFrame(this.animationFrame);
-                    this.animationFrame = null;
-                }
-
-                if (this.stream) {
-                    this.stream.getTracks().forEach(track => track.stop());
-                    this.stream = null;
-                }
-
-                this.cameraContainer.classList.remove('active');
-                this.scanButton.textContent = '📷 Start Scanning';
-                this.scanButton.disabled = false;
-                this.stopButton.style.display = 'none';
-                this.debugButton.style.display = 'none';
-                this.removeDebugCanvas();
-                this.updateStatus('Scanner stopped', 'info');
-            }
-
-            pauseScanning() {
-                if (this.animationFrame) {
-                    cancelAnimationFrame(this.animationFrame);
-                    this.animationFrame = null;
-                }
-            }
-
-            resumeScanning() {
-                if (this.isScanning && !this.animationFrame) {
-                    this.startScanLoop();
-                }
-            }
-
-            startScanLoop() {
-                let scanCount = 0;
-                
-                const scan = () => {
-                    if (!this.isScanning) return;
-
-                    if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
-                        // Set canvas size to match video dimensions
-                        this.canvas.height = this.video.videoHeight;
-                        this.canvas.width = this.video.videoWidth;
-                        
-                        // Draw current video frame to canvas
-                        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-                        
-                        // Update debug canvas if enabled
-                        if (this.debugMode && this.debugCanvas.parentNode) {
-                            this.debugCanvas.width = 150;
-                            this.debugCanvas.height = 100;
-                            this.debugContext.drawImage(this.video, 0, 0, 150, 100);
-                        }
-                        
-                        // Get image data from canvas
-                        const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
-                        
-                        // Try to detect QR code with multiple approaches
-                        let code = null;
-                        
-                        // First attempt - normal detection
-                        code = jsQR(imageData.data, imageData.width, imageData.height, {
-                            inversionAttempts: "attemptBoth"
-                        });
-                        
-                        // If no code found, try with different options
-                        if (!code) {
-                            code = jsQR(imageData.data, imageData.width, imageData.height, {
-                                inversionAttempts: "onlyInvert"
-                            });
-                        }
-                        
-                        // If still no code, try with no inversion
-                        if (!code) {
-                            code = jsQR(imageData.data, imageData.width, imageData.height, {
-                                inversionAttempts: "dontInvert"
-                            });
-                        }
-
-                        // Update scan count for debugging
-                        scanCount++;
-                        if (scanCount % 30 === 0) { // Update status every 30 frames (~1 second at 30fps)
-                            this.updateStatus(`Scanning... (${Math.floor(scanCount/30)}s) - Resolution: ${this.canvas.width}x${this.canvas.height}`, 'info');
-                        }
-
-                        if (code) {
-                            console.log('QR Code detected:', code.data);
-                            console.log('QR Code location:', code.location);
-                            
-                            if (Date.now() - this.lastScanTime > this.scanCooldown) {
-                                this.lastScanTime = Date.now();
-                                this.handleQRCodeDetected(code.data);
-                                return;
-                            }
-                        }
-                    } else {
-                        // Video not ready, show loading status
-                        this.updateStatus('Loading camera...', 'info');
-                    }
-
-                    this.animationFrame = requestAnimationFrame(scan);
-                };
-
-                // Start the scan loop
-                this.updateStatus('Ready to scan - point at QR code', 'info');
-                scan();
-            }
-
-            async handleQRCodeDetected(data) {
-                try {
-                    // Validate URL
-                    const url = new URL(data);
-                    
-                    this.updateStatus(`✅ QR Code detected! Redirecting...`, 'success');
-                    
-                    // Store original URL for later redirection
-                    sessionStorage.setItem('originalQRUrl', data);
-                    sessionStorage.setItem('qrScanTimestamp', Date.now().toString());
-                    
-                    // Stop scanning
-                    this.stopScanning();
-                    
-                    // Wait a moment for user to see the success message
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    
-                    // Redirect to the URL (which will redirect to login portal)
-                    window.location.href = data;
-                    
-                } catch (error) {
-                    this.updateStatus('Invalid QR code format', 'error');
-                    console.error('QR Code processing error:', error);
-                    
-                    // Resume scanning after error
-                    setTimeout(() => {
-                        if (this.isScanning) {
-                            this.updateStatus('Point camera at QR code', 'info');
-                        }
-                    }, 2000);
-                }
-            }
-
-            updateStatus(message, type = 'info') {
-                this.status.textContent = message;
-                this.status.className = `status ${type}`;
-            }
-
-            toggleDebugMode() {
-                this.debugMode = !this.debugMode;
-                
-                if (this.debugMode) {
-                    this.showDebugCanvas();
-                    this.debugButton.textContent = '🐛 Hide Debug';
-                } else {
-                    this.removeDebugCanvas();
-                    this.debugButton.textContent = '🐛 Show Debug';
-                }
-            }
-
-            showDebugCanvas() {
-                this.debugCanvas.style.position = 'fixed';
-                this.debugCanvas.style.top = '10px';
-                this.debugCanvas.style.right = '10px';
-                this.debugCanvas.style.width = '150px';
-                this.debugCanvas.style.height = '100px';
-                this.debugCanvas.style.border = '2px solid #00f2fe';
-                this.debugCanvas.style.borderRadius = '8px';
-                this.debugCanvas.style.zIndex = '1000';
-                this.debugCanvas.style.backgroundColor = '#000';
-                document.body.appendChild(this.debugCanvas);
-            }
-
-            removeDebugCanvas() {
-                if (this.debugCanvas.parentNode) {
-                    this.debugCanvas.parentNode.removeChild(this.debugCanvas);
-                }
-            }
-        }
-
-        // Handle post-login redirection
-        function handlePostLoginRedirection() {
-            const originalUrl = sessionStorage.getItem('originalQRUrl');
-            const scanTimestamp = sessionStorage.getItem('qrScanTimestamp');
-            const currentUrl = window.location.href;
-            
-            // Check if we're coming back from a login portal
-            if (originalUrl && scanTimestamp) {
-                const timeElapsed = Date.now() - parseInt(scanTimestamp);
-                
-                // If less than 5 minutes have passed and we're not on the original URL
-                if (timeElapsed < 300000 && !currentUrl.includes('qr-scanner')) {
-                    // Clear the stored data
-                    sessionStorage.removeItem('originalQRUrl');
-                    sessionStorage.removeItem('qrScanTimestamp');
-                    
-                    // Redirect to original URL
-                    if (currentUrl !== originalUrl) {
-                        console.log('Redirecting to original URL:', originalUrl);
-                        window.location.href = originalUrl;
-                    }
-                }
-            }
-        }
-
-        // Initialize the scanner when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            new QRScanner();
-            
-            // Check for post-login redirection
-            handlePostLoginRedirection();
-        });
-
-        // Handle page visibility for better mobile experience
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                handlePostLoginRedirection();
-            }
-        });
-    </script>
+    scanner.render(onScanSuccess, onScanFailure);
+  </script>
 </body>
 </html>
