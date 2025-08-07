@@ -50,79 +50,64 @@
   <div id="status">📷 Initializing camera...</div>
 
   <script>
-    // ✅ Post-login redirect logic
-    function handlePostLoginRedirect() {
+    // ✅ Check for login message and redirect
+    document.addEventListener("DOMContentLoaded", function () {
+      const successAlert = document.querySelector(".alert.alert-success");
+      const loginConfirmed = successAlert && successAlert.textContent.includes("You have been logged in!");
       const savedUrl = sessionStorage.getItem("originalQRUrl");
       const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
       const now = Date.now();
 
-      const successAlert = document.querySelector(".alert.alert-success");
-      const loginConfirmed = successAlert && successAlert.textContent.includes("You have been logged in!");
-
-      if (savedUrl && loginConfirmed && (now - scanTime < 5 * 60 * 1000)) {
-        console.log("✅ Login message found. Redirecting to:", savedUrl);
-
-        // Clear so it doesn't trigger again
+      if (loginConfirmed && savedUrl && (now - scanTime < 5 * 60 * 1000)) {
+        console.log("✅ Login confirmed, redirecting to:", savedUrl);
         sessionStorage.removeItem("originalQRUrl");
         sessionStorage.removeItem("qrScanTimestamp");
-
-        // Redirect after short delay
         setTimeout(() => {
           window.location.href = savedUrl;
-        }, 100); // Small delay to allow success message to display
+        }, 300);
+        return; // prevent scanner from running again
       }
-    }
-  document.addEventListener("DOMContentLoaded", function () {
-    const successAlert = document.querySelector(".alert.alert-success");
-    const loginConfirmed = successAlert && successAlert.textContent.includes("You have been logged in!");
-    const savedUrl = sessionStorage.getItem("originalQRUrl");
-    const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
-    const now = Date.now();
 
-    if (loginConfirmed && savedUrl && (now - scanTime < 5 * 60 * 1000)) {
-      console.log("✅ Post-login redirect triggered:", savedUrl);
-      sessionStorage.removeItem("originalQRUrl");
-      sessionStorage.removeItem("qrScanTimestamp");
-      setTimeout(() => {
-        window.location.href = savedUrl;
-      }, 300);
-    }
-  });
-    window.addEventListener("DOMContentLoaded", handlePostLoginRedirect);
-
-    // ✅ QR scanner logic
-    const statusEl = document.getElementById("status");
-
-    function onScanSuccess(decodedText) {
-      statusEl.textContent = `✅ QR Detected: ${decodedText}`;
-
-      if (window.qrAlreadyScanned) return;
-      window.qrAlreadyScanned = true;
-
-      sessionStorage.setItem("originalQRUrl", decodedText);
-      sessionStorage.setItem("qrScanTimestamp", Date.now().toString());
-
-      scanner.clear().then(() => {
-        console.log("🛑 Scanner stopped after scan.");
-        window.location.href = decodedText;
-      }).catch(err => {
-        console.error("Failed to stop scanner:", err);
-        window.location.href = decodedText;
-      });
-    }
-
-    function onScanFailure(error) {
-      // Optional: silent fail
-    }
-
-    const scanner = new Html5QrcodeScanner("reader", {
-      fps: 10,
-      qrbox: { width: 250, height: 250 },
-      rememberLastUsedCamera: true,
-      supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+      // If no login message, launch QR scanner
+      startScanner();
     });
 
-    scanner.render(onScanSuccess, onScanFailure);
+    // ✅ QR scanner logic
+    function startScanner() {
+      const statusEl = document.getElementById("status");
+
+      function onScanSuccess(decodedText) {
+        statusEl.textContent = `✅ QR Detected: ${decodedText}`;
+
+        if (window.qrAlreadyScanned) return;
+        window.qrAlreadyScanned = true;
+
+        sessionStorage.setItem("originalQRUrl", decodedText);
+        sessionStorage.setItem("qrScanTimestamp", Date.now().toString());
+
+        scanner.clear().then(() => {
+          console.log("🛑 Scanner stopped after scan.");
+          window.location.href = decodedText;
+        }).catch(err => {
+          console.error("Failed to stop scanner:", err);
+          window.location.href = decodedText;
+        });
+      }
+
+      function onScanFailure(error) {
+        // Silent fail
+      }
+
+      const scanner = new Html5QrcodeScanner("reader", {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        rememberLastUsedCamera: true,
+        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+      });
+
+      window.scanner = scanner; // make accessible to stop in success
+      scanner.render(onScanSuccess, onScanFailure);
+    }
   </script>
 </body>
 </html>
