@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR Redirector</title>
+
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
   <style>
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       display: flex;
@@ -16,56 +18,86 @@
       padding: 20px;
       min-height: 100vh;
     }
-    h1 { margin-bottom: 8px; }
+
+    h1 { font-size: 24px; margin-bottom: 8px; }
     p { opacity: 0.85; font-size: 14px; margin-bottom: 20px; text-align: center; }
+
     #reader {
       width: 100%;
       max-width: 400px;
       background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 12px;
       padding: 20px;
     }
+
     #status {
       margin-top: 15px;
+      font-size: 14px;
       background: rgba(0,0,0,0.2);
       padding: 10px;
       border-radius: 8px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <h1>🔍 QR Scanner</h1>
-  <p>Scan a certificate QR code to proceed</p>
+  <p>Scan QR codes to open certificate after login</p>
+
   <div id="reader"></div>
   <div id="status">📷 Initializing camera...</div>
 
   <script>
-    // ✅ Return from login tab logic
-    if (window.opener && window.name === "loginRedirect") {
-      const returnUrl = sessionStorage.getItem("originalQRUrl");
-      if (returnUrl) {
-        console.log("🔁 Redirecting opener tab to:", returnUrl);
-        window.opener.location.href = returnUrl;
-        window.close();
-      }
+    const statusEl = document.getElementById("status");
+
+    const originalUrl = sessionStorage.getItem("originalQRUrl");
+    const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
+    const now = Date.now();
+
+    const loginPage = window.location.pathname.includes("/login");
+    const loginComplete = document.title.includes("Unit List");
+
+    if (loginComplete && originalUrl && now - scanTime < 5 * 60 * 1000) {
+      statusEl.textContent = "✅ Login complete. Redirecting to certificate...";
+      sessionStorage.removeItem("originalQRUrl");
+      sessionStorage.removeItem("qrScanTimestamp");
+      setTimeout(() => {
+        window.location.href = originalUrl;
+      }, 500);
+    } else if (loginPage && originalUrl) {
+      statusEl.textContent = "🔐 Please login to access the certificate...";
+      // Wait and poll every second
+      const interval = setInterval(() => {
+        if (document.title.includes("Unit List")) {
+          clearInterval(interval);
+          statusEl.textContent = "✅ Login complete. Redirecting...";
+          setTimeout(() => {
+            window.location.href = originalUrl;
+          }, 500);
+        }
+      }, 1000);
+    } else {
+      startScanner();
     }
 
     function startScanner() {
-      const statusEl = document.getElementById("status");
-
       function onScanSuccess(decodedText) {
         statusEl.textContent = `✅ QR Detected: ${decodedText}`;
         if (window.qrAlreadyScanned) return;
+
         window.qrAlreadyScanned = true;
 
         sessionStorage.setItem("originalQRUrl", decodedText);
+        sessionStorage.setItem("qrScanTimestamp", Date.now().toString());
 
-        // ✅ Open login portal in new tab with a name
-        const loginWindow = window.open("https://portal.mycompany.com", "loginRedirect");
-
-        if (!loginWindow || loginWindow.closed || typeof loginWindow.closed == 'undefined') {
-          alert("Popup blocked. Please allow popups for this site.");
-        }
+        scanner.clear().then(() => {
+          console.log("🛑 Scanner stopped. Redirecting to login...");
+          window.location.href = "https://portal.mycompany.com/login";
+        }).catch(err => {
+          console.error("Scanner stop error:", err);
+          window.location.href = "https://portal.mycompany.com/login";
+        });
       }
 
       function onScanFailure(error) {
@@ -79,10 +111,9 @@
         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
       });
 
+      window.scanner = scanner;
       scanner.render(onScanSuccess, onScanFailure);
     }
-
-    document.addEventListener("DOMContentLoaded", startScanner);
   </script>
 </body>
 </html>
