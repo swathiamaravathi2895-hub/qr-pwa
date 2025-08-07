@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json" />
+  <title>QR File Access Scanner</title>
+  <style>
+    #reader { width: 100%; max-width: 400px; margin: auto; }
+    video { width: 100%; border-radius: 8px; }
+    body { font-family: sans-serif; text-align: center; background: #fafbfc; }
+    h1 { color: #1976d2; }
+    #status { margin: 1.5em 0; color: #333; }
+  </style>
+</head>
+<body>
+  <h1>Scan QR Code</h1>
+  <div id="reader"></div>
+  <p id="status"></p>
+  <!-- QR code library FIRST (NOTICE THE .js, not _js) -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.11/minified/html5-qrcode.min.js"></script>
+  <!-- Your scanner AFTER -->
+  <script src="qr-scanner.js"></script>
+</body>
+</html>
