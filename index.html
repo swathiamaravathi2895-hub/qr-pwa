@@ -58,7 +58,7 @@
       const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
       const now = Date.now();
 
-      if (loginConfirmed && savedUrl && (now - scanTime < 5 * 60 * 1000)) {
+      if (loginConfirmed && savedUrl && (now - scanTime < 10 * 1000)) {
         console.log("✅ Login confirmed, redirecting to:", savedUrl);
         sessionStorage.removeItem("originalQRUrl");
         sessionStorage.removeItem("qrScanTimestamp");
