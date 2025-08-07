@@ -72,7 +72,22 @@
         }, 100); // Small delay to allow success message to display
       }
     }
+  document.addEventListener("DOMContentLoaded", function () {
+    const successAlert = document.querySelector(".alert.alert-success");
+    const loginConfirmed = successAlert && successAlert.textContent.includes("You have been logged in!");
+    const savedUrl = sessionStorage.getItem("originalQRUrl");
+    const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
+    const now = Date.now();
 
+    if (loginConfirmed && savedUrl && (now - scanTime < 5 * 60 * 1000)) {
+      console.log("✅ Post-login redirect triggered:", savedUrl);
+      sessionStorage.removeItem("originalQRUrl");
+      sessionStorage.removeItem("qrScanTimestamp");
+      setTimeout(() => {
+        window.location.href = savedUrl;
+      }, 300);
+    }
+  });
     window.addEventListener("DOMContentLoaded", handlePostLoginRedirect);
 
     // ✅ QR scanner logic
