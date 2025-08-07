@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR Redirector</title>
-
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -31,6 +29,21 @@
       padding: 20px;
     }
 
+    #iframeContainer {
+      width: 100%;
+      height: 80vh;
+      display: none;
+      border: 2px solid white;
+      border-radius: 12px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 12px;
+    }
+
     #status {
       margin-top: 15px;
       font-size: 14px;
@@ -43,65 +56,42 @@
 </head>
 <body>
   <h1>🔍 QR Scanner</h1>
-  <p>Scan QR codes to open certificate after login</p>
+  <p>Scan QR code to access your certificate</p>
 
   <div id="reader"></div>
   <div id="status">📷 Initializing camera...</div>
 
+  <div id="iframeContainer">
+    <p style="color:white; margin-top:10px;">🕒 Waiting for login... Please complete the login below.</p>
+    <iframe id="loginIframe" src="about:blank"></iframe>
+  </div>
+
   <script>
-    const statusEl = document.getElementById("status");
-
-    const originalUrl = sessionStorage.getItem("originalQRUrl");
-    const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
-    const now = Date.now();
-
-    const loginPage = window.location.pathname.includes("/login");
-    const loginComplete = document.title.includes("Unit List");
-
-    if (loginComplete && originalUrl && now - scanTime < 5 * 60 * 1000) {
-      statusEl.textContent = "✅ Login complete. Redirecting to certificate...";
-      sessionStorage.removeItem("originalQRUrl");
-      sessionStorage.removeItem("qrScanTimestamp");
-      setTimeout(() => {
-        window.location.href = originalUrl;
-      }, 500);
-    } else if (loginPage && originalUrl) {
-      statusEl.textContent = "🔐 Please login to access the certificate...";
-      // Wait and poll every second
-      const interval = setInterval(() => {
-        if (document.title.includes("Unit List")) {
-          clearInterval(interval);
-          statusEl.textContent = "✅ Login complete. Redirecting...";
-          setTimeout(() => {
-            window.location.href = originalUrl;
-          }, 500);
-        }
-      }, 1000);
-    } else {
-      startScanner();
-    }
-
     function startScanner() {
+      const statusEl = document.getElementById("status");
+
       function onScanSuccess(decodedText) {
         statusEl.textContent = `✅ QR Detected: ${decodedText}`;
         if (window.qrAlreadyScanned) return;
-
         window.qrAlreadyScanned = true;
 
         sessionStorage.setItem("originalQRUrl", decodedText);
         sessionStorage.setItem("qrScanTimestamp", Date.now().toString());
 
         scanner.clear().then(() => {
-          console.log("🛑 Scanner stopped. Redirecting to login...");
-          window.location.href = "https://portal.mycompany.com/login";
-        }).catch(err => {
-          console.error("Scanner stop error:", err);
-          window.location.href = "https://portal.mycompany.com/login";
+          document.getElementById("reader").style.display = "none";
+          document.getElementById("iframeContainer").style.display = "block";
+
+          const iframe = document.getElementById("loginIframe");
+          iframe.src = "https://portal.pylonelectronics.com/login";
+
+          // Start login monitoring
+          monitorLoginInIframe(iframe, decodedText);
         });
       }
 
       function onScanFailure(error) {
-        // Silent fail
+        // No-op
       }
 
       const scanner = new Html5QrcodeScanner("reader", {
@@ -114,6 +104,28 @@
       window.scanner = scanner;
       scanner.render(onScanSuccess, onScanFailure);
     }
+
+    function monitorLoginInIframe(iframe, originalUrl) {
+      const checkInterval = setInterval(() => {
+        try {
+          const iframePath = iframe.contentWindow.location.pathname;
+
+          if (iframePath.toLowerCase().includes("unit_list")) {
+            clearInterval(checkInterval);
+            sessionStorage.removeItem("qrScanTimestamp");
+
+            // Redirect main window to final PDF
+            setTimeout(() => {
+              window.location.href = originalUrl;
+            }, 500);
+          }
+        } catch (e) {
+          // Cross-origin restriction until login happens — silently fail
+        }
+      }, 1000);
+    }
+
+    document.addEventListener("DOMContentLoaded", startScanner);
   </script>
 </body>
 </html>
