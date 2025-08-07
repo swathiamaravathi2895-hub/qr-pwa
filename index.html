@@ -50,31 +50,32 @@
   <div id="status">📷 Initializing camera...</div>
 
   <script>
-    // Handle redirect after login message
+    // ✅ Post-login redirect logic
     function handlePostLoginRedirect() {
       const savedUrl = sessionStorage.getItem("originalQRUrl");
       const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
       const now = Date.now();
-      const loginText = "You have been logged in!"; // Change this if needed
 
-      const loginMessagePresent = document.body.innerText.includes(loginText);
+      const successAlert = document.querySelector(".alert.alert-success");
+      const loginConfirmed = successAlert && successAlert.textContent.includes("You have been logged in!");
 
-      if (savedUrl && loginMessagePresent && (now - scanTime < 5 * 60 * 1000)) {
-        console.log("✅ Detected login success. Redirecting to:", savedUrl);
+      if (savedUrl && loginConfirmed && (now - scanTime < 5 * 60 * 1000)) {
+        console.log("✅ Login message found. Redirecting to:", savedUrl);
 
-        // Clear session to avoid repeated redirects
+        // Clear so it doesn't trigger again
         sessionStorage.removeItem("originalQRUrl");
         sessionStorage.removeItem("qrScanTimestamp");
 
+        // Redirect after short delay
         setTimeout(() => {
           window.location.href = savedUrl;
-        }, 30); // Short delay to let user see login message
+        }, 100); // Small delay to allow success message to display
       }
     }
 
-    handlePostLoginRedirect();
+    window.addEventListener("DOMContentLoaded", handlePostLoginRedirect);
 
-    // Init QR Scanner
+    // ✅ QR scanner logic
     const statusEl = document.getElementById("status");
 
     function onScanSuccess(decodedText) {
@@ -88,7 +89,7 @@
 
       scanner.clear().then(() => {
         console.log("🛑 Scanner stopped after scan.");
-        window.location.href = decodedText; // Open login page in same tab
+        window.location.href = decodedText;
       }).catch(err => {
         console.error("Failed to stop scanner:", err);
         window.location.href = decodedText;
