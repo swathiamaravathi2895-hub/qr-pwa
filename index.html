@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="manifest" href="manifest.json" />
   <title>QR File Access Scanner</title>
-  <!-- Load html5-qrcode from CDN -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.11/minified/html5-qrcode.min.js"></script>
   <style>
     #reader { width: 100%; max-width: 400px; margin: auto; }
     video { width: 100%; border-radius: 8px; }
@@ -19,6 +17,9 @@
   <h1>Scan QR Code</h1>
   <div id="reader"></div>
   <p id="status"></p>
+  <!-- Put the QR library script FIRST -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.11/minified/html5-qrcode.min.js"></script>
+  <!-- Then your own script -->
   <script src="qr-scanner.js"></script>
 </body>
 </html>
